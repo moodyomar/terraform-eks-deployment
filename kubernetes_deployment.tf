@@ -1,8 +1,14 @@
+resource "kubernetes_namespace" "qoq" {
+  metadata {
+    name = "qoq-ns"
+  }
+}
+
 resource "kubernetes_deployment" "qoq" {
   metadata {
     name = "qoq-app"
     labels = {
-      App = "qoq"
+      app = "qoq"
     }
   }
 
@@ -10,13 +16,13 @@ resource "kubernetes_deployment" "qoq" {
     replicas = 2
     selector {
       match_labels = {
-        App = "qoq"
+        app = "qoq"
       }
     }
     template {
       metadata {
         labels = {
-          App = "qoq"
+          app = "qoq"
         }
       }
       spec {
@@ -40,6 +46,22 @@ resource "kubernetes_deployment" "qoq" {
           }
         }
       }
+    }
+  }
+}
+resource "kubernetes_service" "qoq" {
+  metadata {
+    name      = "qoq-ser"
+    namespace = kubernetes_namespace.qoq.metadata.0.name
+  }
+  spec {
+    selector = {
+      app = kubernetes_deployment.qoq.spec.0.template.0.metadata.0.labels.app
+    }
+    type = "LoadBalancer"
+    port {
+      port        = 80
+      target_port = 80
     }
   }
 }
